@@ -7,6 +7,9 @@ import android.provider.Settings;
 import android.graphics.Color;
 import android.view.View;
 import android.widget.*;
+import android.app.NotificationManager;
+import android.view.accessibility.AccessibilityManager;
+import android.accessibilityservice.AccessibilityServiceInfo;
 
 public class MainActivity extends Activity {
     private static final int BG=Color.rgb(13,20,33),FG=Color.rgb(235,241,249);
@@ -27,7 +30,7 @@ public class MainActivity extends Activity {
         scroll.addView(layout);
         setContentView(scroll);
 
-        heading("PAYTM NOTE INSPECTOR");
+        heading("PAYTM DEEP INSPECTOR V2");
         text("Read-only diagnostic for your receiving Paytm app. No internet permission, no root, no reading Paytm private databases, no payment actions.");
         text("PRIVACY: With your permission, this app can read visible text from Paytm for 180 seconds after you tap Arm, and Paytm notification extras while Notification access is enabled. Financial details stay in this app's private storage and can be deleted.");
         CheckBox consent=new CheckBox(this);
@@ -56,6 +59,13 @@ public class MainActivity extends Activity {
             else startActivity(i);
         });
         button("Stop capturing",()->{prefs.edit().putLong("armed_until",0L).apply();refresh();});
+        button("Inspect a screenshot image using offline OCR",()->{
+            if(!allowed())return;
+            Intent image=new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            image.addCategory(Intent.CATEGORY_OPENABLE);
+            image.setType("image/*");
+            startActivityForResult(image,901);
+        });
         button("Refresh observations",this::refresh);
         results=text("");
         button("Copy redacted summary",()->{
@@ -75,6 +85,28 @@ public class MainActivity extends Activity {
         text("This is a diagnostic only. Finding a code in Paytm is not independent proof of bank settlement.");
         refresh();
     }
+    @Override protected void onActivityResult(int request,int result,Intent data){
+        super.onActivityResult(request,result,data);
+        if(request!=901||result!=RESULT_OK||data==null||data.getData()==null||!allowed())return;
+        try{
+            com.google.mlkit.vision.common.InputImage img=
+                com.google.mlkit.vision.common.InputImage.fromFilePath(this,data.getData());
+            com.google.mlkit.vision.text.TextRecognizer r=
+                com.google.mlkit.vision.text.TextRecognition.getClient(
+                  com.google.mlkit.vision.text.latin.TextRecognizerOptions.DEFAULT_OPTIONS);
+            r.process(img).addOnSuccessListener(t->{
+                prefs.edit().putString("ocr_capture",t.getText())
+                    .putString("screenshot_status","Imported image OCR complete").apply();
+                r.close();refresh();
+            }).addOnFailureListener(e->{
+                prefs.edit().putString("screenshot_status","OCR failed: "+e.getClass().getSimpleName()).apply();
+                r.close();refresh();
+            });
+        }catch(Exception e){
+            prefs.edit().putString("screenshot_status","Image unreadable: "+e.getClass().getSimpleName()).apply();
+            refresh();
+        }
+    }
     private boolean allowed(){
         if(prefs.getBoolean("consent",false))return true;
         toast("Tick consent first");return false;
@@ -90,9 +122,20 @@ public class MainActivity extends Activity {
         if(results==null)return;
         String ui=prefs.getString("ui","");
         String nt=prefs.getString("notification","");
-        results.setText("RECEIVING PAYTM SCREEN\n"+Parser.describe(ui)+"\n\nPAYTM NOTIFICATION\n"+Parser.describe(nt)+
+        results.setText("ACCESSIBILITY SERVICE CONNECTED: "+prefs.getBoolean("service_connected",false)+
+          "\\nPAYTM EVENTS: "+prefs.getInt("paytm_events",0)+
+          "\\nNODE COUNT: "+prefs.getInt("node_count",0)+
+          "\\nWINDOW COUNT: "+prefs.getInt("window_count",0)+
+          "\\nSCREENSHOT STATUS: "+prefs.getString("screenshot_status","Not attempted")+
+          "\\nSCREENSHOT ATTEMPTS: "+prefs.getInt("screenshot_attempts",0)+
+          "\\nRECEIVING PAYTM SCREEN\\n"+Parser.describe(ui)+
+          "\\nEVENT TEXT\\n"+Parser.describe(prefs.getString("event_capture",""))+
+          "\\nOCR\\n"+Parser.describe(prefs.getString("ocr_capture",""))+
+          "\\nPAYTM NOTIFICATION\\n"+Parser.describe(nt)+
             "\n\nCaptured Paytm UI nodes:\n"+(ui.isEmpty()?"No screen captured. Arm, then open a received transaction.":ui)+
-            "\n\nLatest Paytm notification:\n"+(nt.isEmpty()?"No notification available. Old dismissed notifications cannot be recovered.":nt)+
+            "\\n\\nEvent text:\\n"+prefs.getString("event_capture","")+
+            "\\n\\nOCR text:\\n"+prefs.getString("ocr_capture","")+
+            "\\n\\nLatest Paytm notification:\\n"+(nt.isEmpty()?"No notification available. Old dismissed notifications cannot be recovered.":nt)+
             "\n\nError: "+prefs.getString("ui_error",""));
     }
     private TextView text(String value){
