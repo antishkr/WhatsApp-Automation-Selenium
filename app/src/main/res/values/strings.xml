@@ -1,0 +1,4 @@
+<resources>
+<string name="app_name">Paytm Note Inspector</string>
+<string name="a11y_desc">With your consent, read accessible Paytm screen text during a short diagnostic session. Never performs clicks, payment actions or network uploads.</string>
+</resources>
