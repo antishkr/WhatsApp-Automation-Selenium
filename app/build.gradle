@@ -3,15 +3,20 @@ android {
     namespace 'cloud.trackportfolio.inspector'
     compileSdk 35
     defaultConfig {
-        applicationId 'cloud.trackportfolio.inspector'
+        applicationId 'cloud.trackportfolio.inspector.deep'
         minSdk 26
         targetSdk 35
-        versionCode 1
-        versionName '0.1.0'
+        versionCode 2
+        versionName '0.2.0'
     }
     buildTypes { release { minifyEnabled false } }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+}
+
+dependencies {
+    // Bundled on-device OCR model: no INTERNET permission required.
+    implementation 'com.google.mlkit:text-recognition:16.0.1'
 }

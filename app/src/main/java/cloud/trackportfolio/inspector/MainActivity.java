@@ -29,7 +29,7 @@ public class MainActivity extends Activity {
 
         heading("PAYTM NOTE INSPECTOR");
         text("Read-only diagnostic for your receiving Paytm app. No internet permission, no root, no reading Paytm private databases, no payment actions.");
-        text("PRIVACY: With your permission, this app can read visible text from Paytm for 90 seconds after you tap Arm, and Paytm notification extras while Notification access is enabled. Financial details stay in this app's private storage and can be deleted.");
+        text("PRIVACY: With your permission, this app can read visible text from Paytm for 180 seconds after you tap Arm, and Paytm notification extras while Notification access is enabled. Financial details stay in this app's private storage and can be deleted.");
         CheckBox consent=new CheckBox(this);
         consent.setText("I consent to local inspection on my own phone");
         consent.setTextColor(FG);
@@ -43,7 +43,7 @@ public class MainActivity extends Activity {
         button("2. Enable Notification Access (optional)",()->settings(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));
         text("Sideloaded apps on Android 13+ may need Settings → Apps → Paytm Note Inspector → Allow restricted settings before Accessibility can be enabled. Only enable if you trust this app.");
         status=text("Not armed");
-        button("3. ARM 90-SECOND CAPTURE",()->{
+        button("3. ARM 180-SECOND CAPTURE",()->{
             if(!allowed()) return;
             prefs.edit().putLong("armed_until",System.currentTimeMillis()+90000L).remove("ui").remove("ui_error").apply();
             toast("Armed. Open a RECEIVED transaction in Paytm.");
