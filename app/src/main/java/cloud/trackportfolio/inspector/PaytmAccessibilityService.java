@@ -79,7 +79,7 @@ public class PaytmAccessibilityService extends AccessibilityService {
             }
             String capture=output.substring(0,Math.min(output.length(),48000));
             int score=(Parser.hasCode(capture)?10000:0)
-                +(Parser.hasReference(capture)?2000:0)
+                +(Parser.hasRef(capture)?2000:0)
                 +Math.min(count[0],500);
             int previous=prefs.getInt("capture_score",-1);
             SharedPreferences.Editor edit=prefs.edit()
