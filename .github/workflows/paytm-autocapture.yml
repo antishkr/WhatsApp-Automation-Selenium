@@ -26,9 +26,6 @@ jobs:
           export ANDROID_HOME=/usr/local/lib/android/sdk
           export ANDROID_SDK_ROOT=$ANDROID_HOME
           mkdir -p $ANDROID_HOME/cmdline-tools/latest
-          curl -fsSL --retry 3 https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o /tmp/android-tools.zip
-          unzip -q /tmp/android-tools.zip -d /tmp/android-cli
-          mv /tmp/android-cli/cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest/
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install 'platforms;android-35' 'build-tools;35.0.0'
       - name: Test
