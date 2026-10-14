@@ -28,6 +28,9 @@ jobs:
           mkdir -p $ANDROID_HOME/cmdline-tools/latest
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Fix Java record accessors
+        run: |
+          perl -pi -e 's/\b(e|current)\.(id|posted|title|body|state|tries|detail|error|key)\b/$1.$2()/g' autocapture/app/src/main/java/com/autocapture/paytm/MainActivity.java autocapture/app/src/main/java/com/autocapture/paytm/CaptureAccessibilityService.java
       - name: Test
         working-directory: autocapture
         run: gradle --no-daemon :app:testDebugUnitTest
